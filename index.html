@@ -130,7 +130,6 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,
 
 .gridiron-defense-hud{max-width:840px;margin:12px auto;padding:16px;background:#122d34;border:1px solid #a3e660;border-radius:14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}.gridiron-defense-hud[hidden]{display:none}.gridiron-defense-hud>div:first-child{flex:1;min-width:210px}.gridiron-defense-hud small,.gridiron-defense-hud strong,.gridiron-defense-hud span{display:block}.gridiron-defense-hud small{font-size:10px;letter-spacing:2px;color:#baff75}.gridiron-defense-hud strong{font-size:17px;margin:5px 0}.gridiron-defense-hud span{font-size:12px;color:#b9d4d3}.defense-live-actions{display:flex;gap:8px;flex-wrap:wrap}.defense-live-actions button{border:1px solid #90c96a;background:#254437;color:#f1ffe9;border-radius:8px;padding:12px;cursor:pointer}.defense-live-actions button:disabled{opacity:.5;cursor:default}.defense-recharge{flex-basis:100%;height:5px;background:#061e25;border-radius:9px;overflow:hidden}.defense-recharge span{height:100%;background:#b7ff60}.gridiron-defense-hud[data-ready=false]{border-color:#e9ab79}
 
-.game-view-indicator[hidden]{display:none}.game-view-indicator{position:sticky;top:0;z-index:8;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;margin:10px 0;border:2px solid #ffbc79;border-radius:12px;background:#442719;color:#fff3dd}.game-view-indicator button{padding:10px 15px;background:#fff0d8;color:#42200c;border:0;border-radius:8px;font-weight:800}.game-view-consent{max-width:560px}.game-view-consent p,.game-view-viewer p{line-height:1.6}.game-view-consent-actions{display:flex;justify-content:flex-end;gap:12px}.game-view-consent button,.game-view-viewer button{padding:11px 16px;border-radius:9px;border:1px solid #92a67b;background:#263a28;color:#f1f5e6;cursor:pointer}.game-view-consent [data-share-start]{background:#d4fa79;color:#17240f;font-weight:800}.game-view-viewer{width:min(1000px,94vw);max-height:90vh;overflow:auto}.game-view-layout{display:grid;grid-template-columns:minmax(170px,240px) minmax(0,1fr);gap:16px}.game-view-list{display:flex;flex-direction:column;gap:10px}.game-view-list button{text-align:left}.game-view-list [aria-pressed=true]{border-color:#d4fa79;background:#435337}.game-view-picture{min-width:0;padding:14px;background:#0c1710;border-radius:12px}.game-view-picture img{width:100%;height:auto;max-height:55vh;object-fit:contain;border-radius:8px;background:#0b1020}.game-view-picture img[hidden]{display:none}#owner-game-views{margin:10px 0}@media(max-width:650px){.game-view-layout{grid-template-columns:1fr}.game-view-list{max-height:180px;overflow:auto}}
 
 body[data-owner="false"] #owner-open,body[data-owner="false"] #dock-owner,body[data-owner="false"] .feedback-entry,#admin-open,[href*=signout-with-chatgpt]{display:none!important}.activity-notice{display:block;margin:12px auto;padding:12px 16px;border:1px solid #8eae7b66;border-radius:12px;background:#173026;color:#d6f4d8;font:500 13px/1.5 system-ui;max-width:1320px}.activity-dashboard{width:min(1100px,96vw);max-height:90vh;overflow:auto}.activity-dashboard::backdrop{background:#000b;backdrop-filter:blur(5px)}.activity-toolbar{display:flex;gap:10px;flex-wrap:wrap}.activity-toolbar input{flex:1;min-width:180px;padding:12px;border-radius:9px;border:1px solid #ffffff35;background:#101a28;color:#fff}.activity-table-wrap{overflow:auto}.activity-dashboard table{width:100%;border-collapse:collapse;text-align:left;min-width:650px}.activity-dashboard th,.activity-dashboard td{padding:14px 10px;border-bottom:1px solid #ffffff25}.activity-dashboard th{font-size:12px;text-transform:uppercase;color:#b9dc96}.activity-dashboard td{font-size:14px}.activity-dashboard td:nth-child(2){text-transform:capitalize}.activity-footnote{font-size:12px;line-height:1.6;opacity:.8}
 
@@ -6398,85 +6397,6 @@ function auraNextGames(catalog,recent,favorites,played,seed){
  render();
 })();
 
-// Game-only, explicitly opt-in sharing. No desktop, microphone, or camera capture.
-(function gameViewSharing(){
- const isGithub=location.hostname==='weart1004-pixel.github.io';
- const endpoint=isGithub?'https://recess-arcade.niceloon33.chatgpt.site/api/game-view':'/api/game-view';
- async function api(body,query='',keepalive=false){
-  const token=isGithub?read('github-visitor-key',''):'';
-  const response=await fetch(endpoint+query,{method:body?'POST':'GET',credentials:isGithub?'omit':'same-origin',cache:'no-store',headers:{...(token?{Authorization:'Bearer '+token}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{}),...(keepalive?{keepalive:true}:{signal:AbortSignal.timeout(10000)})});
-  const data=await response.json();if(!response.ok)throw Error(data.error||'Game sharing is unavailable.');return data;
- }
- const shareButton=document.createElement('button');shareButton.id='game-view-share';shareButton.type='button';shareButton.textContent='◉ Share game view';$('copy-game-link').after(shareButton);
- const indicator=document.createElement('aside');indicator.className='game-view-indicator';indicator.hidden=true;indicator.setAttribute('aria-label','Game sharing is active');
- const indicatorText=document.createElement('b'),stopButton=document.createElement('button');indicatorText.textContent='● Sharing this game with the owner';stopButton.type='button';stopButton.textContent='Stop sharing';indicator.append(indicatorText,stopButton);stage.before(indicator);
- const consent=document.createElement('dialog');consent.id='game-view-consent';consent.className='extras-panel game-view-consent';consent.setAttribute('aria-labelledby','game-view-consent-title');
- consent.innerHTML='<div class="modal-head"><h2 id="game-view-consent-title">Share your game with the owner?</h2><button type="button" data-share-cancel aria-label="Cancel game sharing">✕</button></div><p>Only the current game picture is shared with the site owner. Pictures update about every two seconds. Only the latest picture is kept briefly; this does not record a video.</p><p>Sharing stops when you close the game, switch games, leave this tab, or press Stop sharing. Each session lasts up to 30 minutes.</p><p data-share-error role="status"></p><div class="game-view-consent-actions"><button type="button" data-share-cancel>Cancel</button><button type="button" data-share-start>Share this game</button></div>';
- document.body.append(consent);const error=consent.querySelector('[data-share-error]'),confirm=consent.querySelector('[data-share-start]');
- let sharing=null,epoch=0,sending=false,timer=null;
- function stop(message='',unloading=false){
-  epoch++;const previous=sharing;sharing=null;if(timer)clearTimeout(timer);timer=null;indicator.hidden=true;shareButton.textContent='◉ Share game view';shareButton.disabled=false;
-  if(previous)api({action:'stop',sessionId:previous.sessionId},'',unloading).catch(()=>{});
-  if(message&&!unloading)toast(message);
- }
- stopButton.onclick=()=>stop('Game sharing stopped.');
- for(const b of consent.querySelectorAll('[data-share-cancel]'))b.onclick=()=>consent.close();
- shareButton.onclick=()=>{if(sharing){stop('Game sharing stopped.');return;}if(!dialog.open||!active||!stage.querySelector('canvas')){toast('Game viewing is available for canvas games, including Pocket Gridiron.');return;}error.textContent='';confirm.disabled=false;consent.showModal();};
- function stillAllowed(current){return sharing===current&&dialog.open&&active?.id===current.gameId&&document.visibilityState==='visible'&&Date.now()<current.ends;}
- async function sendFrame(){
-  const current=sharing;if(!current)return;if(sending){timer=setTimeout(sendFrame,2000);return;}
-  if(!stillAllowed(current)){stop('Game sharing stopped.');return;}
-  const source=stage.querySelector('canvas');if(!source?.width||!source.height){stop('This game view is no longer available.');return;}
-  sending=true;
-  try{
-   await new Promise(resolve=>requestAnimationFrame(resolve));if(!stillAllowed(current))return;
-   const picture=document.createElement('canvas'),scale=Math.min(1,520/source.width,340/source.height);picture.width=Math.max(1,Math.round(source.width*scale));picture.height=Math.max(1,Math.round(source.height*scale));
-   const ctx=picture.getContext('2d',{alpha:false});ctx.fillStyle='#101820';ctx.fillRect(0,0,picture.width,picture.height);ctx.drawImage(source,0,0,picture.width,picture.height);
-   let frame=picture.toDataURL('image/jpeg',.5);if(frame.length>90000)frame=picture.toDataURL('image/jpeg',.25);if(frame.length>90000)throw Error('This game picture is too large to share.');
-   if(stillAllowed(current))await api({action:'frame',sessionId:current.sessionId,frame});
-  }catch(e){if(sharing===current)stop('Sharing stopped. '+e.message);}
-  finally{sending=false;if(sharing===current)timer=setTimeout(sendFrame,2000);}
- }
- confirm.onclick=async()=>{
-  const game=active;if(!game||!stage.querySelector('canvas')){error.textContent='Open a supported game first.';return;}
-  const consentEpoch=++epoch;confirm.disabled=true;shareButton.disabled=true;error.textContent='Starting game sharing…';
-  try{
-   await arcadeApi('session');
-   if(!consent.open||consentEpoch!==epoch||!dialog.open||active?.id!==game.id){shareButton.disabled=false;return;}
-   const started=await api({action:'start',gameId:game.id,gameName:game.name});
-   if(!consent.open||consentEpoch!==epoch||!dialog.open||active?.id!==game.id||document.visibilityState!=='visible'){api({action:'stop',sessionId:started.sessionId}).catch(()=>{});shareButton.disabled=false;return;}
-   sharing={sessionId:started.sessionId,gameId:game.id,ends:Date.now()+30*60*1000};consent.close();indicator.hidden=false;shareButton.disabled=false;shareButton.textContent='■ Stop sharing';sendFrame();
-  }catch(e){if(consentEpoch===epoch){error.textContent=e.message;confirm.disabled=false;shareButton.disabled=false;}}
- };
- dialog.addEventListener('close',()=>{stop();if(consent.open)consent.close();});
- document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible'){stop();if(consent.open)consent.close();}});
- window.addEventListener('pagehide',()=>stop('',true));
- // Stop immediately when another game replaces the current stage.
- new MutationObserver(()=>{if(sharing&&(!dialog.open||active?.id!==sharing.gameId))stop();}).observe(stage,{childList:true});
- if(!viewerIsOwner)return;
- const watchButton=document.createElement('button');watchButton.type='button';watchButton.textContent='◉ Watch shared games';watchButton.id='owner-game-views';($('players-search').closest('label')||$('players-search')).before(watchButton);
- const viewer=document.createElement('dialog');viewer.id='owner-game-viewer';viewer.className='extras-panel game-view-viewer';viewer.setAttribute('aria-labelledby','owner-game-view-title');
- viewer.innerHTML='<div class="modal-head"><div><small>OWNER SPECTATOR VIEW</small><h2 id="owner-game-view-title">Shared games</h2></div><button type="button" data-view-close aria-label="Close shared games">✕</button></div><p>Players appear here only after choosing Share game view. Their game picture updates about every two seconds.</p><button type="button" data-view-refresh>Refresh players</button><p data-view-status role="status"></p><div class="game-view-layout"><div data-view-list class="game-view-list"></div><section class="game-view-picture"><h3 data-view-name>Choose a sharing player</h3><img data-view-image alt="Current game picture shared by a player" hidden><p data-view-caption>No shared game selected.</p><button type="button" data-view-stop hidden>Stop watching</button></section></div>';
- document.body.append(viewer);const list=viewer.querySelector('[data-view-list]'),image=viewer.querySelector('[data-view-image]'),caption=viewer.querySelector('[data-view-caption]'),heading=viewer.querySelector('[data-view-name]'),status=viewer.querySelector('[data-view-status]'),watchStop=viewer.querySelector('[data-view-stop]');let selected=null,polling=false,rosterKey='';
- function clearView(){selected=null;image.hidden=true;image.removeAttribute('src');heading.textContent='Choose a sharing player';caption.textContent='No shared game selected.';watchStop.hidden=true;}
- async function poll(){
-  if(!viewer.open||polling)return;polling=true;
-  try{
-   const {items}=await api();if(!viewer.open)return;status.textContent=items.length?items.length+' player'+(items.length===1?' is':'s are')+' sharing':'Nobody is sharing right now. Players can opt in using Share game view inside a supported game.';
-   const nextRosterKey=JSON.stringify(items.map(p=>[p.user_id,p.session_id,p.name,p.game_name]))+'|'+(selected?.session_id||'');
-   if(nextRosterKey!==rosterKey){rosterKey=nextRosterKey;list.replaceChildren();
-   for(const person of items){const button=document.createElement('button');button.type='button';button.textContent=person.avatar+' '+person.name+' · '+person.game_name;button.setAttribute('aria-pressed',String(selected?.session_id===person.session_id));button.onclick=()=>{selected=person;poll();};list.append(button);}
-   }
-   if(!selected)return;
-   const current=selected;
-   if(!items.some(person=>person.user_id===current.user_id&&person.session_id===current.session_id)){clearView();caption.textContent='This player stopped sharing.';return;}
-   const frame=await api(null,'?player='+encodeURIComponent(current.user_id)+'&session='+encodeURIComponent(current.session_id));
-   if(!viewer.open||selected!==current)return;image.src=frame.frame;image.hidden=false;heading.textContent=frame.name+' · '+frame.gameName;caption.textContent='Live game view · Updates about every two seconds';watchStop.hidden=false;
-  }catch(e){if(viewer.open){clearView();status.textContent=e.message;}}
-  finally{polling=false;}
- }
- watchButton.onclick=()=>{viewer.showModal();poll();};viewer.querySelector('[data-view-close]').onclick=()=>viewer.close();viewer.querySelector('[data-view-refresh]').onclick=poll;watchStop.onclick=clearView;viewer.addEventListener('close',clearView);setInterval(poll,2500);
-})();
 
 (function githubPresence(){
  const originalGuestOpen=openGame;let checking=false;
