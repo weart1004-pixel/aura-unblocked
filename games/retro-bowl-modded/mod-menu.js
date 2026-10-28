@@ -710,7 +710,7 @@
   document.getElementById("a-reload").onclick = function () { location.reload(); };
 
   window.addEventListener("keydown", function (e) {
-    if (e.key === "Tab" && panel.classList.contains("open") && !isTypingBox(e.target)) e.preventDefault();
+    if (e.key.toLowerCase() === "x" && !e.repeat && !isTypingBox(e.target)) {      e.preventDefault();      openMenu();      return;    }    if (e.key === "Tab" && panel.classList.contains("open") && !isTypingBox(e.target)) e.preventDefault();
     if (e.key === "/" && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "TEXTAREA") {
       e.preventDefault();
       cycleSlashUI();
